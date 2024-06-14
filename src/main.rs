@@ -6,6 +6,7 @@ slint::slint!{
 
     export global CalcLogic{
         callback button-pressed(string);
+        callback key-pressed(string);
     }
 
     component Button {
@@ -27,6 +28,8 @@ slint::slint!{
 
     export component App inherits Window {
         in property <int> value: 0;
+        width: 300px;
+        height: 400px;
         title:  "rCalc";
         GridLayout {
             padding: 20px;
@@ -57,6 +60,18 @@ slint::slint!{
                 Button { text: "c";}
             } 
         }
+        forward-focus: my-key-handler;
+        my-key-handler := FocusScope {
+            key-pressed(event) => {
+                debug(event.text);
+                if (event.text == Key.Shift){
+                    debug("Shift key pressed");
+                } else {
+                    CalcLogic.button-pressed(event.text);
+                }
+                accept
+            }
+        }
     }
 }
 
@@ -81,7 +96,7 @@ fn main() {
             app.set_value(state.curr_value);
             return;
         }
-        if value.as_str() == "=" {
+        if value.as_str() == "=" ||  value.as_str() == "\n" {
             let result: i32 = match state.operator.as_str() {
                 "+" => state.prev_value.checked_add(state.curr_value).unwrap_or(0),
                 "-" => state.prev_value.checked_sub(state.curr_value).unwrap_or(0),
